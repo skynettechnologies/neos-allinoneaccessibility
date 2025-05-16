@@ -1,0 +1,26 @@
+Neos:
+  Neos:
+    fusion:
+      autoInclude:
+        'Skynettechnologies.Allinoneaccessibility': true
+    modules:
+      administration:
+        submodules:
+          allinoneaccessibility:
+            label: 'All in One Accessibility®'
+            controller: 'Skynettechnologies\Allinoneaccessibility\Controller\BackendController'
+            description: 'Quick Web Accessibility Implementation with All In One Accessibility!'
+            icon: 'fas fa-universal-access'
+
+Skynettechnologies:
+  Allinoneaccessibility:
+    enabled: true
+    autoInclude:
+      config: true
+      scripts: true
+      styles: true
+    enableStickyConsentSettingsButton: true
+    config:
+      privacyPolicy: ''
+      translations: []
+      services: []

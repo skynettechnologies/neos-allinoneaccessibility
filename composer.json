@@ -1,0 +1,41 @@
+{
+    "name": "skynettechnologies/neos-allinoneaccessibility",
+    "type": "neos-plugin",
+    "description": "Quick Web Accessibility Implementation with All In One Accessibility!",
+    "keywords": [
+        "neos-cms",
+        "framework",
+        "accessibility",
+        "wcag",
+        "ada",
+        "All",
+        "in",
+        "One",
+        "Accessibility"
+    ],
+    "license": "MIT",
+    "require": {
+        "neos/neos": "^9.0"
+    },
+    "extra": {
+        "neos": {
+            "package-key": "Skynettechnologies.Allinoneaccessibility"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Skynettechnologies\\Allinoneaccessibility\\": "Classes/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Rajesh Bhimani",
+            "email": "developer3@skynettechnologies.com",
+            "role": "Developer",
+            "homepage": "https://skynettechnologies.com"
+        }
+    ],
+    "support": {
+        "email": "hello@skynettechnologies.com"
+    }
+}

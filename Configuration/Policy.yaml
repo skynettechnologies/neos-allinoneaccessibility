@@ -1,0 +1,11 @@
+privilegeTargets:
+  'Neos\Neos\Security\Authorization\Privilege\ModulePrivilege':
+    'Skynettechnologies.Allinoneaccessibility:AllinoneaccessibilityModule':
+      matcher: 'administration/allinoneaccessibility'
+
+roles:
+  'Neos.Neos:Administrator':
+    privileges:
+      -
+        privilegeTarget: 'Skynettechnologies.Allinoneaccessibility:AllinoneaccessibilityModule'
+        permission: GRANT
