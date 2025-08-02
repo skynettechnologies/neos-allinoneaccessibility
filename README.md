@@ -179,6 +179,11 @@ To avoid CORS policy issues, ensure the following URLs are allowed in your websi
 
 https://neoscms.skynettechnologies.us/
 
+## Documentation
+
+- **[Purchase Neos All in One Accessibility](https://www.skynettechnologies.com/neos-ada-compliant-widget)**
+- **[How to install All in One Accessibility Addon on Neos](https://www.skynettechnologies.com/blog/neos-web-accessibility-widget-installation)**
+- **[All in One Accessibility - Features Guide](https://www.skynettechnologies.com/sites/default/files/accessibility-widget-features-list.pdf)**
 
 ## Submit a Support Request
 

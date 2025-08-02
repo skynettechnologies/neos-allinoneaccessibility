@@ -114,11 +114,11 @@
 												<div class="form-text">
 													<B>NOTE: Currently, All in One Accessibility is dedicated to enhancing accessibility
 														specifically for websites and online stores.</B>
-												</div>
-												<B>  <p class="form-text" id="upgrade_html_notes">Please <a
-													href="https://ada.skynettechnologies.us/trial-subscription" target="_blank">Upgrade</a>
+													<B>  <p id="upgrade_html_notes">Please <a
+													href="https://ada.skynettechnologies.us/trial-subscription" target="_blank" style="color: #007bff; text-decoration: underline; font-weight: bold;">Upgrade</a>
 													to full
 													version of All in One Accessibility Pro with 10 days free trial</p></B>
+												</div>
 											</div>
 										</div>
 										<div class="mb-3 row ">
@@ -819,11 +819,9 @@
 
 	const domain = window.location.hostname;
 
-	const usernameElement = document.getElementById('username');
-	const useremailElement = document.getElementById('email');
+	const username = 'Dear Customer';
+	const useremail = 'no-reply@neos-cms.com';
 
-	const username = usernameElement ? usernameElement.value : 'Username not found';
-	const useremail = useremailElement ? useremailElement.value : 'Email not found';
 
 	const defaultSettings = {
 		widget_position: "bottom_right",
@@ -834,7 +832,7 @@
 
 	const domain_name = domain;
 	let website_name = btoa(domain);
-
+	console.log(username,website_name,useremail);
 	document.addEventListener('DOMContentLoaded', function () {
 		website_name = btoa(domain_name);
 		fetchApiData(website_name);
@@ -853,7 +851,7 @@
 			end_date: '',
 			price: '',
 			discount_price: '0',
-			platform: 'Piwigo',
+			platform: 'Neos-CMS',
 			api_key: '',
 			is_trial_period: '',
 			is_free_widget: '1',
@@ -866,58 +864,34 @@
 			subscr_id: '',
 			payment_source: ''
 		};
-
-		const apiUrl = "https://ada.skynettechnologies.us/api/get-autologin-link";
+		console.log('Details to send:', arrDetails);
+		const apiUrl = "https://ada.skynettechnologies.us/api/add-user-domain";
 
 		fetch(apiUrl, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json"
 			},
-			body: JSON.stringify({ website: website_name })
+			body: JSON.stringify(arrDetails)
 		})
 			.then(response => {
 				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
+					throw new Error(`HTTP error! Status: ${response.status}`);
 				}
 				return response.json();
 			})
-			.then(result => {
-				if (result && result.link) {
-					console.log("Autologin Link:", result.link);
-				} else {
-					const secondApiUrl = "https://ada.skynettechnologies.us/api/add-user-domain";
-
-					fetch(secondApiUrl, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json"
-						},
-						body: JSON.stringify(arrDetails)
-					})
-						.then(response => {
-							if (!response.ok) {
-								throw new Error(`HTTP error! Status: ${response.status}`);
-							}
-							return response.json();
-						})
-						.then(data => {
-							if (data.success) {
-								console.log("User domain added successfully!");
-							} else {
-								console.error("Error adding user domain.");
-							}
-						})
-						.catch(error => {
-							console.error("Error sending data to add-user-domain API:", error);
-						})
-						.finally(() => {
-							hideLoader();
-						});
+			.then(data => {
+				console.log("Response from add-user-domain API:", data);
+				if (data.success) {
+					console.log("User domain added successfully!");
 				}
 			})
 			.catch(error => {
-				console.error("Error fetching API:", error);
+				console.error("Error sending data to add-user-domain API:", error);
+			})
+			.finally(() => {
+				// Optional: hide loader if you're using one
+				hideLoader?.();
 			});
 	}
 

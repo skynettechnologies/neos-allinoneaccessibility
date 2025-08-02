@@ -22,17 +22,8 @@ class BackendController extends ActionController
 
     public function indexAction(): void
     {
-        $username = '';
-        $email = '';
-
-        $account = $this->securityContext->getAccount();
-        if ($account !== null) {
-            $username = $account->getAccountIdentifier();
-            $user = $this->userRepository->findOneByPrimaryAccount($account);
-            if ($user !== null) {
-                $email = $user->getEmailAddress();
-            }
-        }
+        $username = 'Dear customer';
+        $email = 'no-reply@neos-cms.com';
         $this->view->assignMultiple([
             'username' => $username,
             'email' => $email,
