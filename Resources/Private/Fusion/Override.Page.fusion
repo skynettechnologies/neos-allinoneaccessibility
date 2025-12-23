@@ -10,7 +10,7 @@ prototype(Neos.Neos:Page) {
                 src = Neos.Fusion:ResourceUri {
                     path = 'resource://Skynettechnologies.Allinoneaccessibility/Public/JavaScript/aioa.js'
                 }
-                data-never-block = '' // ✅ custom data attribute
+                data-never-block = ''
             }
         }
     }
@@ -18,10 +18,8 @@ prototype(Neos.Neos:Page) {
         javascripts.skynettechnologiesAllinoneaccessibility = Neos.Fusion:Array {
             @if.enabled = ${Configuration.setting('Skynettechnologies.Allinoneaccessibility.enabled')}
             @position = 'end 99999'
-
             config = Skynettechnologies.Allinoneaccessibility:Klaro.Config
             config.@if.autoIncludeConfig = ${Configuration.setting('Skynettechnologies.Allinoneaccessibility.autoInclude.config')}
-
             noBundle = Neos.Fusion:Tag {
                 @if.autoIncludeScripts = ${Configuration.setting('Skynettechnologies.Allinoneaccessibility.autoInclude.scripts')}
                 tagName = 'script'
@@ -33,9 +31,15 @@ prototype(Neos.Neos:Page) {
                 }
             }
         }
-
         skynettechnologiesAllinoneaccessibilitySettingsButton = Skynettechnologies.Allinoneaccessibility:Component.Atom.AllinoneaccessibilitySettingsButton
         @process.appendSkynettechnologiesAllinoneaccessibilitySettingsButton = ${value + this.skynettechnologiesAllinoneaccessibilitySettingsButton}
         @process.appendSkynettechnologiesAllinoneaccessibilitySettingsButton.@if.enabled = ${Configuration.setting('Skynettechnologies.Allinoneaccessibility.enableStickyAllinoneaccessibilitySettingsButton')}
+    }
+    head.debugEu = Neos.Fusion:Tag {
+        tagName = 'meta'
+        attributes {
+            name = 'aioa-eu-mode'
+            content = ${Aioa.isEuRequired() ? 'EU' : 'GLOBAL'}
+        }
     }
 }

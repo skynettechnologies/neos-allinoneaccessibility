@@ -121,10 +121,6 @@
 												</div>
 											</div>
 										</div>
-										<div class="mb-3 row ">
-
-										</div>
-
 								<div class="mb-3 row d-none" id="license_key_html">
 									<label for="inputPassword" class="col-sm-3 col-form-label">License Key required for full
 										version:</label>
@@ -814,32 +810,43 @@
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
 <script>
-
 	const domain = window.location.hostname;
+	const urlParams = new URLSearchParams(window.location.search);
+	const username = urlParams.get("username") || domain || "Dear Customer";
+	const useremail = urlParams.get("email") || `no-reply@${domain}`;
+	website_name = btoa(domain);
+	console.log(website_name, username, useremail);
 
-	const username = 'Dear Customer';
-	const useremail = 'no-reply@neos-cms.com';
+	async function getCountryData() {
+		const sessionData = sessionStorage.getItem('visitor_data');
+		if (sessionData) {
+			return JSON.parse(sessionData);
+		}
+		try {
+			const response = await fetch('https://ipapi.co/json/');
+			if (!response.ok) throw new Error('Failed to fetch visitor data');
+			const data = await response.json();
+			console.log("Country API response:", data);
+			const visitorData = {
+				country_code: data.country_code || 'Unknown',
+				in_eu: data.in_eu ?? false
+			};
+			sessionStorage.setItem('visitor_data', JSON.stringify(visitorData));
+			return visitorData;
+		} catch (error) {
+			console.error('Error fetching visitor data:', error);
+			return {
+				country_code: 'Unknown',
+				in_eu: false
+			};
+		}
+	}
 
-
-	const defaultSettings = {
-		widget_position: "bottom_right",
-		widget_color_code: "#420083",
-		widget_icon_type: "aioa-icon-type-1",
-		widget_icon_size: "aioa-small-icon",
-	};
-
-	const domain_name = domain;
-	let website_name = btoa(domain);
-	console.log(username,website_name,useremail);
-	document.addEventListener('DOMContentLoaded', function () {
-		website_name = btoa(domain_name);
-		fetchApiData(website_name);
-		fetchApiResponse(domain_name);
-	});
-
-	function fetchApiData(website_name) {
+	async function fetchApiData(website_name) {
+		const visitorData = await getCountryData();
+		const is_eu = visitorData.in_eu ? 0 : 1;
+		console.log(visitorData,is_eu);
 		const packageType = "free-widget";
 		const arrDetails = {
 			name: username,
@@ -862,7 +869,8 @@
 			post_code: '',
 			transaction_id: '',
 			subscr_id: '',
-			payment_source: ''
+			payment_source: '',
+			no_required_eu: is_eu
 		};
 		console.log('Details to send:', arrDetails);
 		const apiUrl = "https://ada.skynettechnologies.us/api/add-user-domain";
@@ -895,6 +903,14 @@
 			});
 	}
 
+	var domain_name = domain;
+	console.log("domain : "+domain);
+	const defaultSettings = {
+		widget_position: "bottom_right",
+		widget_color_code: "#420083",
+		widget_icon_type: "aioa-icon-type-1",
+		widget_icon_size: "aioa-small-icon",
+	};
 	function fetchApiResponse(domain_name) {
 		const apiUrl = "https://ada.skynettechnologies.us/api/widget-settings";
 
@@ -922,10 +938,10 @@
 						widget_icon_size_custom: result.Data.widget_icon_size_custom || defaultSettings.widget_icon_size_custom,
 						is_widget_custom_size: result.Data.is_widget_custom_size || defaultSettings.is_widget_custom_size,
 						is_widget_custom_position: result.Data.is_widget_custom_position || defaultSettings.is_widget_custom_position,
-						widget_position_top: result.Data.widget_position_top || 0,
-						widget_position_bottom: result.Data.widget_position_bottom || 0,
-						widget_position_left: result.Data.widget_position_left || 0,
-						widget_position_right: result.Data.widget_position_right || 0,
+						widget_position_top: result.Data.widget_position_top,
+						widget_position_bottom: result.Data.widget_position_bottom,
+						widget_position_left: result.Data.widget_position_left,
+						widget_position_right: result.Data.widget_position_right,
 					};
 
 					populateSettings(settings);
@@ -965,90 +981,33 @@
 	}
 	// Populate form fields with settings
 	function populateSettings(settings) {
-		if (settings.is_widget_custom_size === 1) {
-			$("#custom-size-switcher").prop("checked", true); // Check the checkbox
-			$(".custom-size-controls").removeClass("hide"); // Show custom size controls
-			$(".widget-icon").addClass("hide"); // Hide widget icon
-			$(".custom-size-switcher").closest(".custom-checkbox").addClass("selected"); // Add 'selected' class
-		} else {
-			$("#custom-size-switcher").prop("checked", false); // Uncheck the checkbox
-			$(".custom-size-controls").addClass("hide"); // Hide custom size controls
-			$(".widget-icon").removeClass("hide"); // Show widget icon
-			$(".custom-size-switcher").closest(".custom-checkbox").removeClass("selected"); // Remove 'selected' class
-		}
-// Toggle behavior for #custom-size-switcher
-		$("#custom-size-switcher").click(function () {
-			settings.is_widget_custom_size = $(this).is(":checked") ? 1 : 0; // Update the value
 
-			if (settings.is_widget_custom_size === 1) {
-				$(".custom-size-controls").removeClass("hide");
-				$(".widget-icon").addClass("hide");
-				$(this).closest(".custom-checkbox").addClass("selected");
-			} else {
-				console.log("settings2: " + settings.is_widget_custom_size);
-				$(".custom-size-controls").addClass("hide");
-				$(".widget-icon").removeClass("hide");
-				$(this).closest(".custom-checkbox").removeClass("selected");
-			}
+		const $sizeSwitcher = $("#custom-size-switcher");
+		const $positionSwitcher = $("#custom-position-switcher");
+
+		// Set switcher states
+		$sizeSwitcher.prop("checked", settings.is_widget_custom_size === 1);
+		$positionSwitcher.prop("checked", settings.is_widget_custom_position === 1);
+
+		// Trigger the UI update by manually calling change handler
+		toggleCustomSizeUI(settings.is_widget_custom_size === 1);
+		toggleCustomPositionUI(settings.is_widget_custom_position === 1);
+
+		// Attach change handlers
+		$sizeSwitcher.off("change").on("change", function () {
+			const enabled = $(this).is(":checked");
+			settings.is_widget_custom_size = enabled ? 1 : 0;
+			toggleCustomSizeUI(enabled);
 		});
-// Simulated API update after fetching settings
-		setTimeout(() => {
-			$("#custom-size-switcher").prop("checked", settings.is_widget_custom_size === 1);
 
-			if (settings.is_widget_custom_size === 1) {
-				$(".custom-size-controls").removeClass("hide");
-				$(".widget-icon").addClass("hide");
-				$("#custom-size-switcher").closest(".custom-checkbox").addClass("selected");
-			} else {
-				console.log("settings3: " + settings.is_widget_custom_size);
-				$(".custom-size-controls").addClass("hide");
-				$(".widget-icon").removeClass("hide");
-				$("#custom-size-switcher").closest(".custom-checkbox").removeClass("selected");
-			}
-		}, 1000);
-// Custom Position Switcher
-		if (settings.is_widget_custom_position === 1) {
-			$("#custom-position-switcher").prop("checked", true); // Check the checkbox
-			$(".custom-position-controls").removeClass("hide"); // Show position controls
-			$(".widget-position").addClass("hide"); // Hide widget position
-			$(".custom-position-switcher").closest(".custom-checkbox").addClass("selected"); // Add 'selected' class
-		} else {
-			console.log("settings1: " + settings.is_widget_custom_position);
-			$("#custom-position-switcher").prop("checked", false); // Uncheck the checkbox
-			$(".custom-position-controls").addClass("hide"); // Hide position controls
-			$(".widget-position").removeClass("hide"); // Show widget position
-			$(".custom-position-switcher").closest(".custom-checkbox").removeClass("selected"); // Remove 'selected' class
-		}
-// Toggle behavior for #custom-position-switcher
-		$("#custom-position-switcher").click(function () {
-			settings.is_widget_custom_position = $(this).is(":checked") ? 1 : 0; // Update the value
-			if (settings.is_widget_custom_position === 1) {
-				$(".custom-position-controls").removeClass("hide");
-				$(".widget-position").addClass("hide");
-				$(this).closest(".custom-checkbox").addClass("selected");
-			} else {
-				console.log("settings2: " + settings.is_widget_custom_position);
-				$(".custom-position-controls").addClass("hide");
-				$(".widget-position").removeClass("hide");
-				$(this).closest(".custom-checkbox").removeClass("selected");
-			}
+		$positionSwitcher.off("change").on("change", function () {
+			const enabled = $(this).is(":checked");
+			settings.is_widget_custom_position = enabled ? 1 : 0;
+			toggleCustomPositionUI(enabled);
 		});
-// Simulated API update after fetching settings
-		setTimeout(() => {
-			$("#custom-position-switcher").prop("checked", settings.is_widget_custom_position === 1);
 
-			if (settings.is_widget_custom_position === 1) {
-				$(".custom-position-controls").removeClass("hide");
-				$(".widget-position").addClass("hide");
-				$("#custom-position-switcher").closest(".custom-checkbox").addClass("selected");
-			} else {
-				console.log("settings3: " + settings.is_widget_custom_position);
-				$(".custom-position-controls").addClass("hide");
-				$(".widget-position").removeClass("hide");
-				$("#custom-position-switcher").closest(".custom-checkbox").removeClass("selected");
-			}
-		}, 1000);
 // end size position
+
 		const colorField = document.getElementById("colorcode");
 		if (colorField) {
 			colorField.value = settings.widget_color_code;
@@ -1069,11 +1028,9 @@
 		});
 
 		const iconImg = `https://www.skynettechnologies.com/sites/default/files/${settings.widget_icon_type}.svg`;
-
 		$(".iconimg").attr("src", iconImg);
 
 		const widget_icon_size_custom = document.getElementById("widget_icon_size_custom");
-
 		if (widget_icon_size_custom) {
 			widget_icon_size_custom.value = settings.widget_icon_size_custom;
 		}
@@ -1088,63 +1045,67 @@
 
 		// Set custom position fields
 		const customPositionXField = document.getElementById("custom_position_x_value");
-
 		const xDirectionSelect = $(".custom-position-controls select")[0];
 
 		if (customPositionXField && xDirectionSelect) {
-			if (settings.widget_position_right > 0) {
+			if (settings.widget_position_right != null && settings.widget_position_right >= 0) {
 				customPositionXField.value = settings.widget_position_right;
 				xDirectionSelect.value = "cust-pos-to-the-right";
-			} else if (settings.widget_position_left > 0) {
+			} else if (settings.widget_position_left != null && settings.widget_position_left >= 0) {
 				customPositionXField.value = settings.widget_position_left;
 				xDirectionSelect.value = "cust-pos-to-the-left";
 			} else {
-				customPositionXField.value = 0;
-				xDirectionSelect.value = "cust-pos-to-the-right"; // Default direction
+				customPositionXField.value = 0; // default
+				xDirectionSelect.value = "cust-pos-to-the-right"; // default direction
 			}
 		}
 
 
 		const customPositionYField = document.getElementById("custom_position_y_value");
-
 		const yDirectionSelect = $(".custom-position-controls select")[1];
+
 		if (customPositionYField && yDirectionSelect) {
-			if (settings.widget_position_bottom > 0) {
+			if (settings.widget_position_bottom != null && settings.widget_position_bottom >= 0) {
 				customPositionYField.value = settings.widget_position_bottom;
 				yDirectionSelect.value = "cust-pos-to-the-lower";
-			} else if (settings.widget_position_top > 0) {
+			} else if (settings.widget_position_top != null && settings.widget_position_top >= 0) {
 				customPositionYField.value = settings.widget_position_top;
 				yDirectionSelect.value = "cust-pos-to-the-upper";
 			} else {
-				customPositionYField.value = 0;
-				yDirectionSelect.value = "cust-pos-to-the-lower"; // Default direction
+				customPositionYField.value = 0; // default
+				yDirectionSelect.value = "cust-pos-to-the-lower"; // default direction
 			}
 		}
 
 	}
-	// Fetch settings when the page loads
-	// window.onload = function () {
-	//     showLoader();
-	//     fetchSettings();
-	//     domain_name = domain;
-	//     website_name = btoa(domain_name);
-	//     fetchApiResponse(domain_name);
-	// };
-	window.onload = function () {
-		showLoader();
-		fetchSettings();
-		domain_name = domain;
-		website_name = btoa(domain_name);
-		fetchApiResponse(domain_name);
-		fetchApiData(website_name);
-		Promise.all([fetchApiResponse(domain_name), fetchApiData(website_name)]).then(() => {
-			hideLoader(); // Hide the loader once both functions complete
-		}).catch(error => {
-			// Handle any errors
+
+	function toggleCustomSizeUI(enabled) {
+		$(".custom-size-controls").toggleClass("hide", !enabled);
+		$(".widget-icon").toggleClass("hide", enabled);
+		$("#custom-size-switcher").closest(".custom-checkbox").toggleClass("selected", enabled);
+	}
+
+	function toggleCustomPositionUI(enabled) {
+		$(".custom-position-controls").toggleClass("hide", !enabled);
+		$(".widget-position").toggleClass("hide", enabled);
+		$("#custom-position-switcher").closest(".custom-checkbox").toggleClass("selected", enabled);
+	}
+
+	document.addEventListener('DOMContentLoaded', async () => {
+		try {
+			showLoader();
+			const website_name = btoa(domain_name);
+			await Promise.all([
+				fetchApiResponse(domain_name),
+				fetchApiData(website_name)
+			]);
+		} catch (error) {
 			console.error("Error during API fetch:", error);
-			hideLoader(); // Ensure loader is hidden even in case of an error
-		});
-	};
+		} finally {
+			hideLoader();
+		}
+	});
+
 	// Show loader function
 	function showLoader() {
 		var loader = document.getElementById('loader');
@@ -1316,10 +1277,13 @@
 		var widget_size = document.querySelector('input[name="widget_size"]:checked').value;
 		var widget_icon_size_custom = $("#widget_icon_size_custom").val();
 		// Validate widget_icon_size_custom range
-		if (widget_icon_size_custom < 20 || widget_icon_size_custom > 150) {
-			alert("The icon size must be between 20 and 150px.");
-			document.getElementById('loader').style.display = 'none'; // Hide the loader if validation fails
-			return; // Stop the function from proceeding if the validation fails
+		if (is_widget_custom_size === 1) {
+			const customSize = parseInt(widget_icon_size_custom, 10);
+			if (isNaN(customSize) || customSize < 20 || customSize > 150) {
+				alert("The icon size must be between 20 and 150px.");
+				document.getElementById("loader").style.display = "none";
+				return;
+			}
 		}
 		const custom_position_x = $("#custom_position_x_value").val() || 0;
 		const custom_position_y = $("#custom_position_y_value").val() || 0;
@@ -1343,7 +1307,7 @@
 			widget_position_top = custom_position_y;
 		}
 
-		var params = new URLSearchParams({
+		var payload = {
 			u: server_name,
 			widget_position: icon_position,
 			is_widget_custom_position: is_widget_custom_position,
@@ -1357,29 +1321,24 @@
 			widget_position_left: widget_position_left,
 			widget_position_top: widget_position_top,
 			widget_position_bottom: widget_position_bottom
-		}).toString();
-
+		};
 		var xhr = new XMLHttpRequest();
 		xhr.open('POST', 'https://ada.skynettechnologies.us/api/widget-setting-update-platform', true);
-		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
+		xhr.setRequestHeader('Content-Type', 'application/json');
 		xhr.onload = function () {
-			// Hide the loader
-			document.getElementById('loader').style.display = 'none';
 			if (xhr.status === 200) {
 				alert('Settings updated successfully!');
 				location.reload();
 			} else {
-				console.error('Error: ', xhr.status, xhr.statusText);
-				alert('Error: Unable to update settings.');
+				alert('Error: Unable to update settings. Please try again.');
+				console.error('Error:', xhr.statusText);
 			}
 		};
 		xhr.onerror = function () {
-			document.getElementById('loader').style.display = 'none';
 			alert('Request failed. Please check your network connection.');
-			console.error('Request error:', xhr);
 		};
-		xhr.send(params);
+		// Send the request with parameters
+		xhr.send(JSON.stringify(payload));
 	};
 </script>
 
